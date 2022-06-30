@@ -112,5 +112,111 @@ namespace AdoNetExamples.Es1.Data
 
             return ingredients;
         }
+
+        public bool UpdatePizzaPrice(int pizzaCode, out string errMsg)
+        {
+            errMsg = null;
+            using var conn = new MySqlConnection(connectionString);
+
+            try
+            {
+                conn.Open();
+                string sql = $"UPDATE Pizza Set Price = 1.1 * Price WHERE Code = {pizzaCode}";
+                using var cmd = new MySqlCommand(sql, conn);
+
+                int result = cmd.ExecuteNonQuery();
+                if(result == 1)
+                {
+                    return true;
+                } 
+                else if(result == 0)
+                {
+                    errMsg = $"Impossibile aggiornare la pizza '{pizzaCode}'";
+                }
+
+            }catch(Exception e)
+            {
+                errMsg = e.Message;
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return false;
+        }
+
+        public Pizza GetByPizzaByCode(int pizzaCode)
+        {
+            using var conn = new MySqlConnection(connectionString);
+            try
+            {
+                conn.Open();
+                var sql = $"SELECT * FROM Pizza WHERE Code = {pizzaCode}";
+                using var cmd = new MySqlCommand(sql, conn);
+
+                var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return new Pizza
+                    {
+                        Id = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Price = Convert.ToSingle(reader["Price"])
+                    };
+                }
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return null;
+        }
+
+        public IList<Pizza> SearchPizzaByIngredientName(string ingredient)
+        {
+            using var conn = new MySqlConnection(connectionString);
+            IList<Pizza> pizzas = new List<Pizza>();
+            try
+            {
+                conn.Open();
+
+                var sql = @"SELECT P.*
+                            FROM Composition C
+                            JOIN Pizza P ON p.Code = C.CodePizza
+                            JOIN Ingredient I ON C.CodeIngredient = I.Code
+                            WHERE I.Name LIKE @ing";
+
+
+                using var cmd = new MySqlCommand(sql, conn);
+                DbParameter parameter = new MySqlParameter("@ing", MySqlDbType.VarChar, 30);
+                parameter.Value = $"%{ingredient}%";
+                cmd.Parameters.Add(parameter);
+
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    pizzas.Add(new Pizza
+                    {
+                        Id = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Price = Convert.ToSingle(reader["Price"])
+                    });
+                }
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return pizzas;
+        }
     }
 }

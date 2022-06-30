@@ -10,5 +10,7 @@ namespace AdoNetExamples.Es1.Data
         IEnumerable<Pizza> GetPizzas();
         IEnumerable<Ingredient> GetPizzaIngredients(int pizzaCode, out string err);
         bool UpdatePizzaPrice(int pizzaCode, out string errMsg);
+        Pizza GetByPizzaByCode(int pizzaCode);
+        IList<Pizza> SearchPizzaByIngredientName(string ingredient);
     }
 }

@@ -14,10 +14,7 @@ namespace AdoNetExamples.Es1
             IPizzeriaBusinessLogic bl = new PizzeriaBusinessLogic();
 
             var pizze = bl.GetPizzas();
-            foreach(var p in pizze)
-            {
-                Console.WriteLine("{0,5}\t{1,-30}{2,8}", p.Id, p.Name, p.Price.ToString("C2"));
-            }
+            PrintPizza(pizze);
 
             Console.Write("Scegli una pizza:\t");
             int pizzaCode = int.Parse(Console.ReadLine());
@@ -37,9 +34,44 @@ namespace AdoNetExamples.Es1
             pizzaCode = int.Parse(Console.ReadLine());
 
             bool updateResult = bl.UpdatePizzaPrice(pizzaCode, out errMsg);
+            if (updateResult)
+            {
+                Console.WriteLine("Pizza aggiornata correttamente");
+            } else
+            {
+                Console.WriteLine("Errore durante aggiornamento.");
+                if (!string.IsNullOrEmpty(errMsg))
+                    Console.WriteLine(errMsg);
+            }
+
+            Pizza pizza = bl.GetByPizzaByCode(pizzaCode);
+            PrintPizza(pizza);
 
 
+            Console.Write($"Indicare ingrediente:\t");
+            string ingredient = Console.ReadLine();
+
+            IList<Pizza> pizzaByIng = bl.SearchPizzaByIngredientName(ingredient);
+            PrintPizza(pizzaByIng);
             Console.ReadLine();
+        }
+
+
+        private static void PrintPizza(IEnumerable<Pizza> pizzas)
+        {
+            Console.WriteLine("{0,5}\t{1,-30}{2,8}", "Codice", "Nome", "Prezzo");
+            foreach (var p in pizzas)
+            {
+                Console.WriteLine("{0,5}\t{1,-30}{2,8}", p.Id, p.Name, p.Price.ToString("C2"));
+            }
+        }
+
+        private static void PrintPizza(Pizza pizza)
+        {
+            if (pizza != null)
+            {
+                Console.WriteLine($"Pizza: {pizza.Name}\tCosto:{pizza.Price}");
+            }
         }
     }
 }
